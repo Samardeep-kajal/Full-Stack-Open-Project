@@ -5,7 +5,7 @@ const Person = ({ name, number }) => (
   </div>
 );
 
-const Persons = ({ persons, filter }) => {
+const Persons = ({ persons, filter, deletePerson }) => {
   let filterPersons = persons;
   if (filter) {
     filterPersons = persons.filter((person) =>
@@ -13,7 +13,10 @@ const Persons = ({ persons, filter }) => {
     );
   }
   return filterPersons.map((person) => (
-    <Person key={person.name} name={person.name} number={person.number} />
+    <div>
+      <Person key={person.name} name={person.name} number={person.number} />{" "}
+      <button onClick={() => deletePerson(person.id)}>delete</button>
+    </div>
   ));
 };
 

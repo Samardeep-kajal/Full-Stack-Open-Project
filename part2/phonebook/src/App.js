@@ -4,6 +4,7 @@ import PersonForm from "./components/PersonForm";
 import Persons from "./components/Persons";
 import axios from "axios";
 import personServices from "./services/person";
+import Notification from "./components/Notification";
 
 const App = () => {
   const [persons, setPersons] = useState([
@@ -19,10 +20,6 @@ const App = () => {
     personServices.getAll().then((initialPersons) => {
       setPersons(initialPersons);
     });
-    // axios.get("http://localhost:3001/persons").then((response) => {
-    //   console.log("promise fulfilled");
-    //   setPersons(response.data);
-    // });
   };
 
   useEffect(hook, []);
@@ -34,26 +31,60 @@ const App = () => {
   //A function to add person's name and number in the list
   const addPerson = (event) => {
     event.preventDefault();
-    const personObject = {
-      name: newName,
-      number: newNumber,
-    };
-    const regex = `^${newName}`;
-    const res = persons.filter((person) =>
-      new RegExp(regex, "i").test(person.name)
-    );
-    if (res.length > 0) {
-      window.alert(`${newName} is already added to phonebook`);
+    const person = persons.filter((person) => person.name === newName);
+    const personToAdd = person[0];
+    const updatedPerson = { ...personToAdd, number: newNumber };
+    // const regex = `^${newName}`;
+    // const res = persons.filter((person) =>
+    //   new RegExp(regex, "i").test(person.name)
+    // );
+    if (person.length !== 0) {
+      if (
+        window.confirm(
+          `${newName} is already added to the phonebook, replace the old number with a new one ?`
+        )
+      )
+        personServices
+          .update(updatedPerson.id, updatedPerson)
+          .then((returnedPerson) => {
+            console.log(`${returnedPerson.name} successfully updated`);
+            setPersons(
+              persons.map((personItem) =>
+                personItem.id !== personToAdd.id ? personItem : returnedPerson
+              )
+            );
+            setNewName("");
+            setNewNumber("");
+            setMessage(`Added ${updatedPerson.name}`);
+            setTimeout(() => {
+              setMessage(null);
+            }, 5000);
+          })
+          .catch((error) => {
+            console.log(error);
+            setPersons(
+              persons.filter((person) => person.id !== updatedPerson.id)
+            );
+            setNewName("");
+            setNewNumber("");
+          });
     } else {
-      setPersons(persons.concat(personObject));
+      const personToAdd = {
+        name: newName,
+        number: newNumber,
+      };
+      personServices
+        .create("https://localhost:3001/persons", persons)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson));
+          setNewName("");
+          setNewNumber("");
+          setMessage(`Added ${newName}`);
+          setTimeout(() => {
+            setMessage(null);
+          }, 3000);
+        });
     }
-    setNewName("");
-    setNewNumber("");
-
-    personServices
-      .create("https://localhost:3001/persons", personObject)
-      .then((response) => console.log(response.data))
-      .catch((error) => console.log("Error Motherfucker"));
   };
 
   const deletePerson = (id) => {
@@ -63,17 +94,21 @@ const App = () => {
     if (window.confirm(`Delete ${personName} ?`)) {
       personServices.remove(personId);
       console.log(`${personName} successfully deleted`);
-      setMessage(`${personName} was successfully deleted`);
       setPersons(persons.filter((person) => person.id !== personId));
-      setTimeout(() => {
-        setMessage(null);
-      }, 5000);
     }
+    setMessage(
+      `Information of ${personName} has already been removed from server`
+    );
+    setPersons(persons.filter((person) => person.id !== personId));
+    setTimeout(() => {
+      setMessage(null);
+    }, 3000);
   };
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} />
       <Filter filter={filter} onFilterChange={handleFilterChange} />
       <h3>Add a new</h3>
       <PersonForm

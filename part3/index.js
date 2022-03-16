@@ -1,6 +1,7 @@
 const http = require("http");
 const express = require("express");
 const app = express();
+var morgan = require("morgan");
 
 let persons = [
   {
@@ -24,6 +25,19 @@ let persons = [
     id: 4,
   },
 ];
+
+app.use(
+  morgan((tokens, request, response) => {
+    return [
+      tokens.method(request, response),
+      tokens.url(request, response),
+      tokens.status(request, response),
+      tokens.res(request, response, "content-length"),
+      "-",
+      JSON.stringify(request.body),
+    ].join(" ");
+  })
+);
 
 app.get("/", (request, response) => {
   response.send("<h1>Hello World!</h1>");

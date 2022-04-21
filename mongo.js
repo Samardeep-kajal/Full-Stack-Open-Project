@@ -19,25 +19,26 @@ mongoose
 const personSchema = new mongoose.Schema({
   name: String,
   number: String,
-  id: Number,
 });
 
 const Persons = mongoose.model("Person", personSchema);
 
 const person = new Persons({
-  name: "Anna Hathaway",
-  number: "011-1234589",
-  id: 1,
+  name: process.argv[3],
+  number: process.argv[4],
 });
 
-person.save().then((result) => {
-  console.log("person details saved!");
-  mongoose.connection.close();
-});
-
-Persons.find({}).then((result) => {
-  result.forEach((person) => {
-    console.log(person);
+if (process.argv[3] && process.argv[4]) {
+  person.save().then((result) => {
+    console.log(`added ${person.name} number ${person.number} to phonebook.`);
+    mongoose.connection.close();
   });
-  mongoose.connection.close();
-});
+} else {
+  Persons.find({}).then((result) => {
+    console.log("phonebook:");
+    result.forEach((person) => {
+      console.log(`${person.name} ${person.number}`);
+    });
+    mongoose.connection.close();
+  });
+}

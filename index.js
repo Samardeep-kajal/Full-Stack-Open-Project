@@ -1,9 +1,12 @@
+//NOW WE HAVE TO START FROM CHANGING NODE GET POST RESPONSES
+require("dotenv").config();
 const http = require("http");
 const express = require("express");
 const app = express();
 var morgan = require("morgan");
 const cors = require("cors");
-
+const mongoose = require("mongoose");
+const Person = require("./modules/Person");
 app.use(cors());
 app.use(express.static("build"));
 
